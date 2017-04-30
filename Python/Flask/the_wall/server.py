@@ -104,7 +104,7 @@ def logout():
 def wall():
     users = mysql.query_db('SELECT first_name, last_name, id FROM users')
     messages = mysql.query_db('SELECT message, id, created_at FROM messages')
-    info = mysql.query_db('SELECT first_name, last_name, user_id, messages.created_at, messages.user_id, messages.id, message FROM users JOIN messages ON users.id = messages.user_id ORDER BY messages.created_at asc')
+    info = mysql.query_db('SELECT first_name, last_name, user_id, messages.created_at, messages.user_id, messages.id, message FROM users JOIN messages ON users.id = messages.user_id ORDER BY messages.created_at DESC')
     comments = mysql.query_db('SELECT first_name, last_name, comment, message_id, comments.created_at FROM comments JOIN users ON comments.user_id = users.id ORDER BY comments.created_at ASC')
     return render_template('wall.html', users=users, messages=messages, info=info, comments=comments)
 
