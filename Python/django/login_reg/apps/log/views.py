@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.core.urlresolvers import reverse
 from django.contrib import messages
 from .models import User
 # Create your views here.
@@ -10,7 +9,7 @@ def index(request):
     return render(request, 'log/index.html', context)
 
 def start_log(request):
-    return redirect(reverse('log:index'))
+    return redirect('log:index')
 
 def start_reg(request):
     context = {
@@ -29,7 +28,7 @@ def reg(request):
         else:
             for err in data:
                 messages.error(request, err)
-            return redirect(reverse('log:start_reg'))
+            return redirect('log:start_reg')
 
 def login(request):
     if request.method == 'POST':
@@ -50,7 +49,7 @@ def login(request):
         else:
             for err in data:
                 messages.error(request, err)
-            return redirect(reverse('log:index'))
+            return redirect('log:index')
 
 def success(request):
     if 'id' in request.session:
@@ -65,7 +64,7 @@ def success(request):
         }
         return render(request, 'log/success.html', context)
     else:
-        return redirect(reverse('log:index'))
+        return redirect('log:index')
 
 def delete_user(request):
     if request.method == 'POST':
@@ -73,10 +72,26 @@ def delete_user(request):
         data = User.objects.delete_user(id)
         if data:
             print "deleted user"
-            return redirect(reverse('log:index'))
+            return redirect('log:index')
         else:
             print "didnt work!"
-            return redirect(reverse('log:index'))
+            return redirect('log:index')
+
+def user_info(request, id):
+    if 'id' in request.session:
+
+        user_info = User.objects.get(id=request.session['id'])
+        id = request.session['id']
+        context = {
+        'first_name': user_info.first_name,
+        'last_name': user_info.last_name,
+        'email': user_info.email,
+        'status': "logged in",
+        'id': user_info.id
+        }
+        return render(request, 'log/user_info.html', context)
+    else:
+        return redirect('log:index')
 
 def update_user(request):
     if request.method == 'POST':
@@ -84,21 +99,14 @@ def update_user(request):
         valid, data = User.objects.update_user(ids, request.POST)
         if valid:
             messages.success(request, 'Profile details updated. Please log in again')
-            return redirect(reverse('log:index'))
+            return redirect('log:index')
         else:
 
             for err in data:
                 messages.error(request, err)
+            return redirect('log:user_info', id=ids)
 
-            user = User.objects.get(id=ids)
-            context = {
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'email': user.email,
-            'status': "logged in",
-            }
-            print "didnt work!"
-            return render(request, 'log/success.html', context)
+            
 def logout(request):
     request.session.clear()
-    return redirect(reverse('log:index'))
+    return redirect('log:index')

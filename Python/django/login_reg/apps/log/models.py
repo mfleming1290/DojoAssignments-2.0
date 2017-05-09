@@ -60,23 +60,35 @@ class UserManager(models.Manager):
       def login(self, postData):
         errors = []
         exists = User.objects.filter(email=postData['email'])
-        if not exists:
+        if len(postData['email']) < 1:
+           errors.append('Email must not be empty')
+
+        if len(postData['password']) < 1:
+            errors.append('Password must not be empty')
+
+        elif not EMAIL_REGEX.match(postData['email']):
+           errors.append('Email must be a valid email')
+
+        elif not exists:
             errors.append('Must be a valid user')
             print "not in database"
 
         if errors:
                 return (False, errors)
         else:
+            try:
+                if exists:
+                    user = User.objects.get(email=postData['email'])
+                    password = postData['password']
+                if bcrypt.hashpw(password.encode(), user.password.encode()) == user.password.encode():
+                    print "success"
+                    return (True, user)
 
-            if exists:
-                user = User.objects.get(email=postData['email'])
-                password = postData['password']
-            if bcrypt.hashpw(password.encode(), user.password.encode()) == user.password.encode():
-                print "success"
-                return (True, user)
-            else:
-                errors.append('incorrect password')
-                return (False, errors)
+            except:
+                    print 'something failed', user
+
+        errors.append('incorrect password')
+        return (False, errors)
 
       def delete_user(self, postData):
           user = User.objects.get(id=postData)
@@ -90,12 +102,30 @@ class UserManager(models.Manager):
               print "in database"
               return (False, errors)
           else:
-              user = User.objects.get(id=ids)
-              user.first_name = postData['first_name']
-              user.last_name = postData['last_name']
-              user.email = postData['email']
-              user.save()
-              return (True, user)
+               if len(postData['first_name']) < 1:
+                   errors.append('First name cannot be empty')
+
+               if len(postData['last_name']) < 1:
+                  errors.append('Last name cannot be empty')
+
+               if not postData['first_name'].isalpha():
+                   errors.append('First Name must only contain letters')
+
+               if not postData['last_name'].isalpha():
+                   errors.append('Last Name must only contain letters')
+
+               if not EMAIL_REGEX.match(postData['email']):
+                  errors.append('Email must be a valid email')
+
+               if errors:
+                   return (False, errors)
+               else:
+                  user = User.objects.get(id=ids)
+                  user.first_name = postData['first_name']
+                  user.last_name = postData['last_name']
+                  user.email = postData['email']
+                  user.save()
+                  return (True, user)
 class User(models.Model):
     first_name = models.CharField(max_length=45)
     last_name = models.CharField(max_length=45)
